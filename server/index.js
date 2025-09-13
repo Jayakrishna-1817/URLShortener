@@ -43,12 +43,12 @@ app.post('/api/shorten', (req, res) => {
     urlDatabase.set(shortCode, urlData);
     analytics.set(shortCode, []);
 
-    const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+    const BACKEND_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
     
     res.json({
       success: true,
       data: urlData,
-      shortUrl: `${BASE_URL}/${shortCode}`
+      shortUrl: `${BACKEND_URL}/${shortCode}`
     });
 
   } catch (error) {
@@ -114,12 +114,13 @@ app.get('/:shortCode', (req, res) => {
     const urlData = urlDatabase.get(shortCode);
 
     if (!urlData) {
+      const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
       return res.status(404).send(`
         <html>
           <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
             <h1>404 - Short URL Not Found</h1>
             <p>The short URL you're looking for doesn't exist.</p>
-            <a href="http://localhost:5173" style="color: #3b82f6;">Go back to URL Shortener</a>
+            <a href="${FRONTEND_URL}" style="color: #3b82f6;">Go back to URL Shortener</a>
           </body>
         </html>
       `);
