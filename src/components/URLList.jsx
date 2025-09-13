@@ -28,7 +28,8 @@ const URLList = ({ urls, onUrlDeleted, onRefresh }) => {
 
     try {
       const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE}/api/urls/${shortCode}`, {
+      const apiUrl = API_BASE.endsWith('/api') ? `${API_BASE}/urls/${shortCode}` : `${API_BASE}/api/urls/${shortCode}`;
+      const response = await fetch(apiUrl, {
         method: 'DELETE'
       });
 

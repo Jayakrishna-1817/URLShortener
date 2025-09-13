@@ -25,7 +25,8 @@ function App() {
   const fetchUrls = async () => {
     try {
       const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE}/api/urls`);
+      const apiUrl = API_BASE.endsWith('/api') ? `${API_BASE}/urls` : `${API_BASE}/api/urls`;
+      const response = await fetch(apiUrl);
       const data = await response.json();
       if (data.success) {
         setUrls(data.data);
