@@ -1,4 +1,4 @@
-# 🔗 QuickLink - URL Shortener
+# 🔗 LinkForge - URL Shortener
 
 A modern, clean URL shortener built with React and Express. No authentication required - just pure URL shortening functionality with analytics.
 

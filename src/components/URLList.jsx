@@ -3,6 +3,24 @@ import { useState } from 'react';
 const URLList = ({ urls, onUrlDeleted, onRefresh }) => {
   const [deletingId, setDeletingId] = useState(null);
 
+  const getShortUrl = (shortCode) => {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    return `${API_BASE}/${shortCode}`;
+  };
+
+  const getDisplayUrl = (shortCode) => {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    return API_BASE.replace('http://', '').replace('https://', '') + `/${shortCode}`;
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {});
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString();
+  };
+
   const handleDelete = async (shortCode) => {
     if (!confirm('Are you sure you want to delete this URL?')) return;
 
@@ -21,126 +39,49 @@ const URLList = ({ urls, onUrlDeleted, onRefresh }) => {
       } else {
         alert('Failed to delete URL');
       }
-    } catch (error) {
+    } catch {
       alert('Failed to delete URL');
     } finally {
       setDeletingId(null);
     }
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // You could add a toast notification here
-      console.log('Copied to clipboard!');
-    });
-  };
-
-  const getShortUrl = (shortCode) => {
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    return `${API_BASE}/${shortCode}`;
-  };
-
-  const getDisplayUrl = (shortCode) => {
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    return API_BASE.replace('http://', '').replace('https://', '') + `/${shortCode}`;
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  if (urls.length === 0) {
-    return (
-      <div className="url-list">
-        <div className="card">
-          <div className="empty-state">
-            <span className="empty-icon">📝</span>
-            <h3>No URLs yet</h3>
-            <p>Create your first short URL above to get started!</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="url-list">
-      <div className="card">
-        <div className="card-header">
-          <h2>Your Short URLs</h2>
-          <button onClick={onRefresh} className="btn btn-secondary btn-small">
-            🔄 Refresh
-          </button>
-        </div>
-
-        <div className="urls-container">
-          {urls.map((url) => (
-            <div key={url.shortCode} className="url-item">
-              <div className="url-info">
-                <div className="url-main">
-                  <a 
-                    href={getShortUrl(url.shortCode)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="short-url"
-                  >
-                    {getDisplayUrl(url.shortCode)}
-                  </a>
-                  <button 
-                    onClick={() => copyToClipboard(getShortUrl(url.shortCode))}
-                    className="btn btn-secondary btn-small"
-                    title="Copy short URL"
-                  >
-                    📋
-                  </button>
-                </div>
-                
-                <div className="url-original">
-                  <span className="label">Original:</span>
-                  <a 
-                    href={url.originalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="original-link"
-                  >
-                    {url.originalUrl}
-                  </a>
-                </div>
-
-                <div className="url-meta">
-                  <span className="meta-item">
-                    <span className="icon">👆</span>
-                    {url.clicks} clicks
-                  </span>
-                  <span className="meta-item">
-                    <span className="icon">📅</span>
-                    {formatDate(url.createdAt)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="url-actions">
-                <button 
-                  onClick={() => copyToClipboard(url.originalUrl)}
-                  className="btn btn-secondary btn-small"
-                  title="Copy original URL"
-                >
-                  📄
-                </button>
-                
-                <button
-                  onClick={() => handleDelete(url.shortCode)}
-                  className="btn btn-danger btn-small"
-                  disabled={deletingId === url.shortCode}
-                  title="Delete URL"
-                >
-                  {deletingId === url.shortCode ? '⏳' : '🗑️'}
+    <div className="modern-url-list">
+      {urls.length === 0 ? (
+        <div className="modern-empty-list">No URLs yet. Shorten one above!</div>
+      ) : (
+        <div className="modern-list-grid">
+          {urls.map(url => (
+            <div key={url.shortCode} className="modern-url-card">
+              <div className="modern-url-header">
+                <a href={getShortUrl(url.shortCode)} target="_blank" rel="noopener noreferrer" className="modern-short-link">
+                  {getDisplayUrl(url.shortCode)}
+                </a>
+                <button className="modern-copy-btn" onClick={() => copyToClipboard(getShortUrl(url.shortCode))} title="Copy short URL">
+                  📋
                 </button>
               </div>
+              <div className="modern-original-url">{url.originalUrl}</div>
+              <div className="modern-url-meta">
+                <span className="modern-created-at">{formatDate(url.createdAt)}</span>
+                <span className="modern-clicks">{url.clicks} clicks</span>
+              </div>
+              <button
+                className="modern-delete-btn"
+                onClick={() => handleDelete(url.shortCode)}
+                disabled={deletingId === url.shortCode}
+                title="Delete URL"
+              >
+                {deletingId === url.shortCode ? '⏳' : '🗑️'}
+              </button>
             </div>
           ))}
         </div>
-      </div>
+      )}
+      <button className="modern-refresh-btn" onClick={onRefresh} title="Refresh list">
+        Refresh
+      </button>
     </div>
   );
 };

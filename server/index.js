@@ -5,15 +5,12 @@ import { nanoid } from 'nanoid';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// In-memory storage for URLs
 const urlDatabase = new Map();
 const analytics = new Map();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Generate short URL
 app.post('/api/shorten', (req, res) => {
   try {
     const { url, customCode } = req.body;
@@ -22,14 +19,12 @@ app.post('/api/shorten', (req, res) => {
       return res.status(400).json({ error: 'URL is required' });
     }
 
-    // Validate URL format
     try {
       new URL(url);
     } catch {
       return res.status(400).json({ error: 'Invalid URL format' });
     }
 
-    // Generate or use custom short code
     let shortCode = customCode;
     if (!shortCode) {
       shortCode = nanoid(8);
@@ -37,7 +32,6 @@ app.post('/api/shorten', (req, res) => {
       return res.status(400).json({ error: 'Custom code already exists' });
     }
 
-    // Store URL
     const urlData = {
       id: shortCode,
       originalUrl: url,
@@ -49,10 +43,12 @@ app.post('/api/shorten', (req, res) => {
     urlDatabase.set(shortCode, urlData);
     analytics.set(shortCode, []);
 
+    const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+    
     res.json({
       success: true,
       data: urlData,
-      shortUrl: `http://localhost:${PORT}/${shortCode}`
+      shortUrl: `${BASE_URL}/${shortCode}`
     });
 
   } catch (error) {
@@ -60,7 +56,6 @@ app.post('/api/shorten', (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 app.get('/api/urls', (req, res) => {
   try {
@@ -72,7 +67,6 @@ app.get('/api/urls', (req, res) => {
   }
 });
 
-// Get URL analytics
 app.get('/api/analytics/:shortCode', (req, res) => {
   try {
     const { shortCode } = req.params;
@@ -96,7 +90,6 @@ app.get('/api/analytics/:shortCode', (req, res) => {
   }
 });
 
-// Delete URL
 app.delete('/api/urls/:shortCode', (req, res) => {
   try {
     const { shortCode } = req.params;
@@ -115,7 +108,6 @@ app.delete('/api/urls/:shortCode', (req, res) => {
   }
 });
 
-// Redirect to original URL
 app.get('/:shortCode', (req, res) => {
   try {
     const { shortCode } = req.params;
@@ -133,7 +125,6 @@ app.get('/:shortCode', (req, res) => {
       `);
     }
 
-    // Track click
     urlData.clicks++;
     const clickRecord = {
       timestamp: new Date(),
@@ -145,7 +136,6 @@ app.get('/:shortCode', (req, res) => {
     clickHistory.push(clickRecord);
     analytics.set(shortCode, clickHistory);
 
-    // Redirect to original URL
     res.redirect(urlData.originalUrl);
   } catch (error) {
     console.error('Error redirecting:', error);
@@ -153,12 +143,10 @@ app.get('/:shortCode', (req, res) => {
   }
 });
 
-// Health check (for Render)
 app.get('/health', (req, res) => {
   res.send('OK');
 });
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     success: true, 

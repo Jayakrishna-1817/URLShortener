@@ -1,0 +1,32 @@
+services:
+  # Backend API Service
+  - type: web
+    name: url-shortener-backend
+    env: node
+    region: ohio
+    buildCommand: cd server && npm install
+    startCommand: cd server && node index.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: BASE_URL
+        fromService:
+          type: web
+          name: url-shortener-frontend
+          property: host
+    healthCheckPath: /health
+
+  # Frontend Static Site
+  - type: web
+    name: url-shortener-frontend
+    env: static
+    region: ohio
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: url-shortener-backend
+          property: host
+        sync: false
